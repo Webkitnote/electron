@@ -43,6 +43,37 @@ ipc.on('asynchronous-reply', function(arg) {
 ipc.send('asynchronous-message', 'ping');
 ```
 
+Another good example of button, whose click can manage the window it's contained in (in this case window size):
+```HTML
+<!-- Example of an HTML website -->
+<!DOCTYPE html>
+<title>test</title>
+<button>click</button> <!-- When this button is getting clicked, IPC request is sent. -->
+<script>
+  var ipc = require('ipc')   // Requirement for your webpage to speak to main thread (mostly main.js)
+  var btn = document.querySelector('button')   // Grabs button, and stops handler in variable.
+  btn.addEventListener('click', function (e) {   // "When button is clicked"
+    e.preventDefault()
+    ipc.send('resize', 600, 800  // Imagine this being a function call, saying, sendToMainThread("resize", 600, 800);
+  })
+</script>
+```
+
+```javascript
+// Main process (mostly main.js)
+var app = require('app')  // Requirement to manage the entire instance.
+var BrowserWindow = require('browser-window')  // Requirement to manage the instance of window (visibility, sizes etc.)
+var ipc = require('ipc')  // Requirement in order for your custom JavaScript files to communicate with main.js
+var mainWindow = null
+app.on("ready", function () {
+  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow.loadUrl(`file://${ __dirname}/index.html`)
+})
+ipc.on("resize", function (e, x, y) { // This creates function, something like: function sentToMainThread(e, x, y) and passes variables through.
+  mainWindow.setSize(x, y) // Action can be performed, website passed variable to IPC, IPC resized window because it has access to it. 
+})
+```
+
 ## Listening for Messages
 
 The `ipc` module has the following method to listen for events:
